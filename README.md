@@ -74,6 +74,8 @@ External availability monitoring is configured separately using an uptime monito
 https://edavholod.ru
 ```
 
+![External availability monitoring](docs/screenshots/availability-monitor.png)
+
 ## Secrets
 
 Secret values are stored in an encrypted Ansible Vault file:

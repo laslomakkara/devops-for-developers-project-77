@@ -1,0 +1,17 @@
+.DS_Store
+
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+*.tfvars
+*.auto.tfvars
+terraform/backend.hcl
+backend.hcl
+
+ansible/inventory.ini
+
+.vault_pass
+
+.env

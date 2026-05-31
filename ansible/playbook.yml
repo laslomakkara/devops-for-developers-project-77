@@ -1,0 +1,76 @@
+- name: Deploy Redmine application
+  hosts: web
+  become: true
+
+  vars_files:
+    - vault.yml
+
+  vars:
+    redmine_db_name: redmine
+    redmine_db_user: redmine
+    redmine_db_port: "6432"
+    redmine_image: redmine:latest
+
+    datadog_api_key: "{{ dd_api_key }}"
+    datadog_site: "datadoghq.eu"
+    datadog_checks:
+      http_check:
+        init_config:
+        instances:
+          - name: redmine-local
+            url: http://localhost/
+            timeout: 5
+
+  roles:
+    - role: datadog.datadog
+      tags:
+        - monitoring
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags:
+        - prepare
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - python3-pip
+        state: present
+      tags:
+        - prepare
+
+    - name: Start and enable Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+      tags:
+        - prepare
+
+    - name: Install Docker SDK for Python
+      ansible.builtin.pip:
+        name: docker
+        state: present
+      tags:
+        - prepare
+
+    - name: Deploy Redmine container
+      community.docker.docker_container:
+        name: redmine
+        image: "{{ redmine_image }}"
+        state: started
+        restart_policy: always
+        recreate: true
+        published_ports:
+          - "80:3000"
+        env:
+          REDMINE_DB_POSTGRES: "{{ redmine_db_host }}"
+          REDMINE_DB_PORT: "{{ redmine_db_port }}"
+          REDMINE_DB_DATABASE: "{{ redmine_db_name }}"
+          REDMINE_DB_USERNAME: "{{ redmine_db_user }}"
+          REDMINE_DB_PASSWORD: "{{ db_password }}"
+      tags:
+        - deploy
